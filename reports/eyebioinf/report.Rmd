@@ -1,0 +1,150 @@
+---
+title: "Coverage Plotting"
+author: "Peter Diakumis"
+date: "28/02/2018"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+require(tidyverse)
+require(cowplot)
+```
+
+Here I'm playing with the example from:
+http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1
+
+## Read in data
+* We have 1 base position per row
+
+```{r}
+# 249,911 rows
+dd_class <- readr::read_csv("../../data/nogit/dd_class.csv", col_types = "cidciiciic")
+glimpse(dd_class)
+```
+
+## Bases per gene
+
+```{r}
+# Chromosomes
+table(dd_class$Chr, useNA = "ifany")
+# Genes - 118 total
+(gene_count <- dd_class %>%
+  group_by(Name) %>% 
+  summarise(Count = n()) %>% 
+  arrange(-Count))
+```
+
+## Exons per gene 
+
+* Take one gene first. CEP290 had most exons (53).
+
+```{r}
+dd_class %>%
+  select(Name, Exon_Number, Chr) %>%
+  filter(Name == "CEP290") %>%
+  group_by(Exon_Number) %>%
+  summarise(Count = n())
+```
+
+* Look at all gene exon numbers in decreasing order:
+
+```{r}
+dd_class %>% 
+  select(Name, Exon_Number) %>% 
+  unique() %>%
+  group_by(Name) %>% 
+  summarise(Count = n()) %>% 
+  arrange(-Count)
+```
+
+## Coverage per base
+
+```{r}
+depth1 <- dd_class %>% 
+  filter(Name == "ABCA4") %>% 
+  pull(Read_Depth)
+
+# Number of bases with depth of coverage > C in Gene A
+summary(depth1)
+sum(depth1 > 5)
+sum(depth1 > 100)
+```
+
+## Coverage per gene
+
+```{r}
+dd_class %>% 
+  group_by(Name) %>% 
+  summarise(
+    tot_bases = n(),
+    lt5 = sum(Read_Depth < 5),
+    lt10 = sum(Read_Depth < 10),
+    lt50 = sum(Read_Depth < 50),
+    gt10 = sum(Read_Depth >= 10),
+    pc5 = lt5 / tot_bases,
+    pc10 = lt10 / tot_bases) %>% 
+  arrange(-pc10)
+```
+
+## Density Plots
+
+### One facet per gene
+
+```{r}
+# Sample X genes
+genes <- sample(gene_count$Name, 6)
+dd_class %>% 
+  filter(Name %in% genes) %>% 
+  ggplot(aes(x = Read_Depth)) +
+  geom_density(fill = "steelblue") +
+  facet_wrap(~Name, ncol = 2) 
+```
+
+### One facet per exon for each gene
+
+```{r}
+dd_class %>%
+  filter(Name == genes[1]) %>% 
+  ggplot(aes(x = Start, y = Read_Depth)) +
+  geom_point(size = 0.1, colour = "steelblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank()) +
+  facet_wrap(~Exon_Number, nrow = 1, scales = "free_x", strip.position = "bottom") +
+  ylab("Depth") +
+  xlab("Exon Number")
+```
+
+### Multiple genes + exons in grid
+
+```{r plot_maker_function}
+plot_maker <- function(gene){
+  
+  n_exons <- dd_class %>%
+    filter(Name == gene) %>%
+    pull(Exon_Number) %>%
+    as.numeric() %>% max()
+  
+  dd_class %>% filter(Name == gene) %>%
+    mutate(Exon_Number = factor(Exon_Number, levels = 0:n_exons)) %>%  
+    ggplot(aes(x = Start, y = Read_Depth)) + 
+    geom_point(size = 0.1, colour = "steelblue") +
+    theme_minimal() +
+    theme(axis.text.x = element_blank(), 
+          axis.ticks.x = element_blank(), 
+          panel.grid.minor = element_blank(), 
+          panel.grid.major.x = element_blank(),
+          legend.position = 'none') + 
+    facet_wrap(~Exon_Number, scales = 'free_x', nrow = 1, strip.position = 'bottom') + 
+    ylab('Depth') + 
+    xlab(gene)
+}
+```
+
+```{r plot_all, fig.height=20}
+cowplot::plot_grid(plotlist = purrr::map(genes, plot_maker), ncol = 1)
+```
