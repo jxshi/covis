@@ -11,12 +11,19 @@ output:
 knitr::opts_chunk$set(collapse = TRUE)
 require(tidyverse)
 require(cowplot)
+set.seed(1)
 ```
 
-Here I'm playing with the example from:
-http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1
+## Introduction
+
+Here I'm playing with the example from the
+[eyebioinformatics blog]( http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
+
+## Contents
 
 ## Read in data
+* Data can be found
+  [here](https://github.com/davemcg/Let_us_plot/raw/master/003_coverage/dd_class.csv)
 * We have 1 base position per row
 
 ```{r}
@@ -93,21 +100,23 @@ dd_class %>%
 
 ### One facet per gene
 
-```{r}
+```{r one_facet_per_gene}
 # Sample X genes
 genes <- sample(gene_count$Name, 6)
 dd_class %>% 
   filter(Name %in% genes) %>% 
   ggplot(aes(x = Read_Depth)) +
   geom_density(fill = "steelblue") +
+  theme_minimal() +
   facet_wrap(~Name, ncol = 2) 
 ```
 
 ### One facet per exon for each gene
 
-```{r}
+```{r one_facet_per_exon}
+one_gene <- sample(genes, 1)
 dd_class %>%
-  filter(Name == genes[1]) %>% 
+  filter(Name == one_gene) %>% 
   ggplot(aes(x = Start, y = Read_Depth)) +
   geom_point(size = 0.1, colour = "steelblue") +
   theme_minimal() +
@@ -116,7 +125,7 @@ dd_class %>%
         panel.grid.major.x = element_blank()) +
   facet_wrap(~Exon_Number, nrow = 1, scales = "free_x", strip.position = "bottom") +
   ylab("Depth") +
-  xlab("Exon Number")
+  xlab(glue::glue("{one_gene} Exon Number"))
 ```
 
 ### Multiple genes + exons in grid

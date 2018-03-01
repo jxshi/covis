@@ -9,9 +9,12 @@ output:
 
 
 
-Here I'm playing with the example from:
-http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1
+## Introduction
 
+Here I'm playing with the example from the
+[eyebioinformatics blog]( http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
+
+## Contents
 
 <!-- vim-markdown-toc GFM -->
 
@@ -28,6 +31,8 @@ http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-covera
 <!-- vim-markdown-toc -->
 
 ## Read in data
+* Data can be found
+  [here](https://github.com/davemcg/Let_us_plot/raw/master/003_coverage/dd_class.csv)
 * We have 1 base position per row
 
 
@@ -195,17 +200,19 @@ dd_class %>%
   filter(Name %in% genes) %>% 
   ggplot(aes(x = Read_Depth)) +
   geom_density(fill = "steelblue") +
+  theme_minimal() +
   facet_wrap(~Name, ncol = 2) 
 ```
 
-![](report_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](report_files/figure-html/one_facet_per_gene-1.png)<!-- -->
 
 ### One facet per exon for each gene
 
 
 ```r
+one_gene <- sample(genes, 1)
 dd_class %>%
-  filter(Name == genes[1]) %>% 
+  filter(Name == one_gene) %>% 
   ggplot(aes(x = Start, y = Read_Depth)) +
   geom_point(size = 0.1, colour = "steelblue") +
   theme_minimal() +
@@ -214,10 +221,10 @@ dd_class %>%
         panel.grid.major.x = element_blank()) +
   facet_wrap(~Exon_Number, nrow = 1, scales = "free_x", strip.position = "bottom") +
   ylab("Depth") +
-  xlab("Exon Number")
+  xlab(glue::glue("{one_gene} Exon Number"))
 ```
 
-![](report_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](report_files/figure-html/one_facet_per_exon-1.png)<!-- -->
 
 ### Multiple genes + exons in grid
 
