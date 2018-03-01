@@ -1,7 +1,7 @@
 ---
 title: "Coverage Plotting"
 author: "Peter Diakumis"
-date: "28/02/2018"
+date: "01/02/2018"
 output: 
   html_document: 
     keep_md: yes
@@ -15,7 +15,6 @@ Here I'm playing with the example from the
 [eyebioinformatics blog]( http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
 
 ## Contents
-
 <!-- vim-markdown-toc GFM -->
 
 * [Read in data](#read-in-data)
