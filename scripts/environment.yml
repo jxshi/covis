@@ -1,0 +1,5 @@
+name: covis
+channels:
+    - bioconda
+dependencies:
+    - mosdepth
