@@ -155,3 +155,85 @@ MT 12336 14145 579.54
 MT 14148 14673 527.07
 MT 14746 15887 465.02
 ```
+
+Step 2: Retrieve transcript and exon number
+------------------------------------------
+
+### UCSC Exon BED file
+
+* UCSC Tables
+    - clade: Mammal
+    - genome: Human
+    - assembly: Feb. 2009 (GRCh37/hg19)
+    - gropu: Genes and Gene Predictions
+    - track: GENCODE Gene V27lift37
+    - table: Basic (wgEncodeGencodeBasicV27lift37)
+    - region: genome
+    - output format: BED - browser extensible data
+    - output file: `gencode_gene_v27lift37.bed`
+    - file type returned: gzip compressed
+    - get output: Coding Exons
+
+* Result:
+
+```
+ls -lh data/
+-rw-r--r-- 1 pdiakumis punim0010 4.9M Mar  6 15:29 gencode_gene_v27lift37.bed.gz
+[...]
+
+gunzip -c data/gencode_gene_v27lift37.bed.gz | wc -l
+540381
+gunzip -c data/gencode_gene_v27lift37.bed.gz | cut -f 5 | uniq -c
+540381 0
+
+md5sum data/gencode_gene_v27lift37.bed.gz
+a115d945a3d5aac546ce70311b1438ed
+```
+
+* Content:
+
+```
+# contains only chr1-22,X,Y,M (i.e. standard chromosomes)
+
+chr1	67000041	67000051	ENST00000237247.10_1_cds_1_0_chr1_67000042_f	0	+
+chr1	67091529	67091593	ENST00000237247.10_1_cds_2_0_chr1_67091530_f	0	+
+chr1	67098752	67098777	ENST00000237247.10_1_cds_3_0_chr1_67098753_f	0	+
+chr1	67099762	67099846	ENST00000237247.10_1_cds_4_0_chr1_67099763_f	0	+
+[...]
+
+# gunzip -c gencode_gene_v27lift37.bed.gz | cut -f1 | uniq -c
+# it's unsorted, and in hg19 format
+
+  51438 chr1  23135 chr10
+  42070 chr2  32178 chr11
+  32116 chr3  30986 chr12
+  22103 chr4   8690 chr13
+  23692 chr5  17633 chr14
+  26601 chr6  18953 chr15
+  25398 chr7  22870 chr16
+  17928 chr8  32300 chr17
+  21253 chr9   9248 chr18
+     13 chrM  31396 chr19
+  18896 chrX  12266 chr20
+   1748 chrY   5997 chr21
+              11473 chr22
+```
+
+### Convert from hg19 to Ensembl b37
+
+```
+gunzip -c gencode_gene_v27lift37.bed.gz | \
+  sed -e 's/^chr//' | \
+  sed -e 's/^M/MT/' | \
+  sort -k1,1V -k2,2n | \
+  gzip > gencode_gene_v27lift37_ensembl.bed.gz
+```
+
+### Intersect Coverage BED with Exon BED
+
+* We probably could have specified the Exon BED for mosdepth. Anyway.
+
+```
+# Fix below
+bedtools intersect -wa -wb -a 41001412010527.per-base.bed.gz -b /data/mcgaugheyd/genomes/GRCh37/gencode_genes_v27lift37.codingExons.ensembl.bed.gz | bgzip  > 41001412010527.per-base.labeled.bed.gz &
+```
