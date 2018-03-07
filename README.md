@@ -1,6 +1,10 @@
 Coverage Visualisation for Cancer Genes
 =======================================
 
+** *DISCLAIMER* These notes are mostly based on
+[this blog post](http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots/)
+by David McGaughey. I'm simply trying to reproduce/retrace all the steps.
+
 Step 0: Software Installation
 -----------------------------
 * Create conda environment with dependencies
@@ -165,7 +169,7 @@ Step 2: Retrieve transcript and exon number
     - clade: Mammal
     - genome: Human
     - assembly: Feb. 2009 (GRCh37/hg19)
-    - gropu: Genes and Gene Predictions
+    - group: Genes and Gene Predictions
     - track: GENCODE Gene V27lift37
     - table: Basic (wgEncodeGencodeBasicV27lift37)
     - region: genome
@@ -181,13 +185,13 @@ ls -lh data/
 -rw-r--r-- 1 pdiakumis punim0010 4.9M Mar  6 15:29 gencode_gene_v27lift37.bed.gz
 [...]
 
+md5sum data/gencode_gene_v27lift37.bed.gz
+a115d945a3d5aac546ce70311b1438ed
+
 gunzip -c data/gencode_gene_v27lift37.bed.gz | wc -l
 540381
 gunzip -c data/gencode_gene_v27lift37.bed.gz | cut -f 5 | uniq -c
 540381 0
-
-md5sum data/gencode_gene_v27lift37.bed.gz
-a115d945a3d5aac546ce70311b1438ed
 ```
 
 * Content:
@@ -237,3 +241,19 @@ gunzip -c gencode_gene_v27lift37.bed.gz | \
 # Fix below
 bedtools intersect -wa -wb -a 41001412010527.per-base.bed.gz -b /data/mcgaugheyd/genomes/GRCh37/gencode_genes_v27lift37.codingExons.ensembl.bed.gz | bgzip  > 41001412010527.per-base.labeled.bed.gz &
 ```
+
+### Prepare Metadata
+
+* We can use
+  [this HGNC file](ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.metadata.HGNC.gz)
+  to match gene names with the ensembl transcript IDs in the Exon BED file
+
+
+```
+```
+
+* We can use
+  [this GTF file](ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.basic.annotation.gtf.gz)
+  to semi-accurately pick the 'canonical' transcript for a gene
+  (pick the appris transcript, then the longest).
+
