@@ -1,9 +1,9 @@
 Coverage Visualisation for Cancer Genes
 =======================================
 
-** *DISCLAIMER* These notes are mostly based on
+**-*DISCLAIMER*-** These notes are mostly based on
 [this blog post](http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots/)
-by David McGaughey. I'm simply trying to reproduce/retrace all the steps.
+by David McGaughey. I'm simply trying to reproduce/retrace/_understand_ all the steps.
 
 Step 0: Software Installation
 -----------------------------
@@ -234,11 +234,31 @@ gunzip -c gencode_gene_v27lift37.bed.gz | \
 
 ### Intersect Coverage BED with Exon BED
 
-* We probably could have specified the Exon BED for mosdepth. Anyway.
+* Command
 
 ```
-# Fix below
-bedtools intersect -wa -wb -a 41001412010527.per-base.bed.gz -b /data/mcgaugheyd/genomes/GRCh37/gencode_genes_v27lift37.codingExons.ensembl.bed.gz | bgzip  > 41001412010527.per-base.labeled.bed.gz &
+bedtools intersect -wa -wb -a <sample>.per-base.bed.gz -b gencode_gene_v27lift37_ensembl.bed.gz | bgzip  > <sample>.per-base.labeled.bed.gz &
+```
+
+* Output
+
+```
+gunzip -c data/HCC2218/mosdepth/HCC2218_tumor.per-base_labeled.bed.gz | wc -l
+42,132,787 # per-base.bed.gz had 79,781,011 so makes sense
+
+# Contents
+
+1	69090	69091	224	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
+1	69090	69091	224	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+1	69091	69092	225	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
+1	69091	69092	225	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+1	69092	69093	226	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
+1	69092	69093	226	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+1	69093	69094	224	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
+1	69093	69094	224	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+1	69094	69095	216	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
+1	69094	69095	216	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+[...]
 ```
 
 ### Prepare Metadata
