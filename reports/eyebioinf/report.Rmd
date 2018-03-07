@@ -1,7 +1,7 @@
 ---
 title: "Coverage Plotting"
 author: "Peter Diakumis"
-date: "01/02/2018"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output: 
   html_document: 
     keep_md: yes
@@ -17,7 +17,7 @@ set.seed(1)
 ## Introduction
 
 Here I'm playing with the example from the
-[eyebioinformatics blog]( http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
+[eyebioinformatics blog](http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
 
 ## Contents
 
@@ -28,8 +28,9 @@ Here I'm playing with the example from the
 
 ```{r}
 # 249,911 rows
-dd_class <- readr::read_csv("../../data/nogit/dd_class.csv", col_types = "cidciiciic")
+dd_class <- readr::read_csv("../../data/dd_class.csv", col_types = "cidciiciic")
 glimpse(dd_class)
+names(dd_class)[2] <- "Exon_Number" # get rid of space
 ```
 
 ## Bases per gene
