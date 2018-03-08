@@ -334,6 +334,8 @@ transcripts <- gencode %>%
 cbind(genes, transcripts)
 ```
 
+## Plot Draft 1
+
 ```{r plot_maker1}
 # set a custom color that will work even if a category is missing
 scale_colour_custom <- function(...){
@@ -385,5 +387,53 @@ plot_maker <- function(tx) {
 ```{r plot_all2, fig.height=20}
 plots <- purrr::map(transcripts, plot_maker)
 cowplot::plot_grid(plotlist = plots, ncol = 1)
+```
+
+## Plot Draft 2
+
+```{r}
+dd2 <- dd %>%
+  filter(transcript %in% transcripts) %>%
+  group_by(transcript, exon_number) %>% 
+  expand(start = full_seq(c(start, end), 1)) %>% 
+  # create one row per base position, grouped by Exon Number https://stackoverflow.com/questions/42866119/fill-missing-values-in-data-frame-using-dplyr-complete-within-groups
+  left_join(.,  dd %>% filter(transcript %in% transcripts)) %>% 
+  # fill missing values https://stackoverflow.com/questions/40040834/r-replace-na-with-previous-or-next-value-by-group-using-dplyr
+  fill(chr:gene_name) 
+
+```
+
+```{r}
+dd2 <- dd2 %>%
+  group_by(gene_name) %>%
+  mutate(pos = 1:n())
+even_odds_marking <- dd2 %>%
+  group_by(gene_name, exon_number) %>%
+  summarise(start = min(pos), end = max(pos)) %>%
+  mutate(
+    exon = case_when(
+      as.numeric(exon_number) %% 2 == 0 ~ 'even',
+      TRUE ~ 'odd'))
+
+
+plot_data <- bind_rows(dd2, even_odds_marking)
+```
+
+```{r plot_all3, fig.height=15}
+ggplot() + 
+  geom_point(data = plot_data %>% filter(is.na(exon)),
+             aes(x = pos, y = depth, colour = depth_cat), size = 0.1) + 
+  facet_wrap(~gene_name, ncol = 1) + 
+  geom_rect(data = plot_data %>% filter(!is.na(exon)), 
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = exon)) +  
+  scale_fill_manual(values = alpha(c("gray", "white"), .3)) +  
+  scale_colour_custom() +
+  theme_minimal() +  
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major.x = element_blank(),
+        legend.position = "none") +
+  ylab('Read Depth') 
 ```
 

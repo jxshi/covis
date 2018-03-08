@@ -21,6 +21,8 @@ output:
     * [Convert UCSC BED files from hg19 to Ensembl b37](#convert-ucsc-bed-files-from-hg19-to-ensembl-b37)
     * [Intersect UCSC BED files with mosdepth BED file](#intersect-ucsc-bed-files-with-mosdepth-bed-file)
 * [Analysis](#analysis)
+* [Plot Draft 1](#plot-draft-1)
+* [Plot Draft 2](#plot-draft-2)
 
 <!-- vim-markdown-toc -->
 
@@ -404,6 +406,8 @@ cbind(genes, transcripts)
 ## [5,] "RPGR"  "ENST00000318842.11"
 ```
 
+## Plot Draft 1
+
 
 ```r
 # set a custom color that will work even if a category is missing
@@ -464,4 +468,57 @@ cowplot::plot_grid(plotlist = plots, ncol = 1)
 ```
 
 ![](report2_files/figure-html/plot_all2-1.png)<!-- -->
+
+## Plot Draft 2
+
+
+```r
+dd2 <- dd %>%
+  filter(transcript %in% transcripts) %>%
+  group_by(transcript, exon_number) %>% 
+  expand(start = full_seq(c(start, end), 1)) %>% 
+  # create one row per base position, grouped by Exon Number https://stackoverflow.com/questions/42866119/fill-missing-values-in-data-frame-using-dplyr-complete-within-groups
+  left_join(.,  dd %>% filter(transcript %in% transcripts)) %>% 
+  # fill missing values https://stackoverflow.com/questions/40040834/r-replace-na-with-previous-or-next-value-by-group-using-dplyr
+  fill(chr:gene_name) 
+## Joining, by = c("transcript", "exon_number", "start")
+```
+
+
+```r
+dd2 <- dd2 %>%
+  group_by(gene_name) %>%
+  mutate(pos = 1:n())
+even_odds_marking <- dd2 %>%
+  group_by(gene_name, exon_number) %>%
+  summarise(start = min(pos), end = max(pos)) %>%
+  mutate(
+    exon = case_when(
+      as.numeric(exon_number) %% 2 == 0 ~ 'even',
+      TRUE ~ 'odd'))
+
+
+plot_data <- bind_rows(dd2, even_odds_marking)
+```
+
+
+```r
+ggplot() + 
+  geom_point(data = plot_data %>% filter(is.na(exon)),
+             aes(x = pos, y = depth, colour = depth_cat), size = 0.1) + 
+  facet_wrap(~gene_name, ncol = 1) + 
+  geom_rect(data = plot_data %>% filter(!is.na(exon)), 
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf, fill = exon)) +  
+  scale_fill_manual(values = alpha(c("gray", "white"), .3)) +  
+  scale_colour_custom() +
+  theme_minimal() +  
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(),
+        panel.grid.minor = element_blank(), 
+        panel.grid.major.x = element_blank(),
+        legend.position = "none") +
+  ylab('Read Depth') 
+```
+
+![](report2_files/figure-html/plot_all3-1.png)<!-- -->
 
