@@ -176,21 +176,21 @@ Step 2: Retrieve transcript and exon number
     - output format: BED - browser extensible data
     - output file: `gencode_gene_v27lift37.bed`
     - file type returned: gzip compressed
-    - get output: Coding Exons
+    - get output: Exons plus 0 bases at each end
 
 * Result:
 
 ```
 ls -lh data/
--rw-r--r-- 1 pdiakumis punim0010 4.9M Mar  6 15:29 gencode_gene_v27lift37.bed.gz
+
+total 45M
+-rw-r--r-- 1 pdiakumis punim0010 6.5M Mar  7 16:17 gencode_gene_v27lift37.bed.gz
 [...]
 
-md5sum: a115d945a3d5aac546ce70311b1438ed
+md5sum: e5d8221e75e7e6fa6ddc1491369d5826
 
 gunzip -c data/gencode_gene_v27lift37.bed.gz | wc -l
-540381
-gunzip -c data/gencode_gene_v27lift37.bed.gz | cut -f 5 | uniq -c
-540381 0
+651821
 ```
 
 * Content:
@@ -198,28 +198,14 @@ gunzip -c data/gencode_gene_v27lift37.bed.gz | cut -f 5 | uniq -c
 ```
 # contains only chr1-22,X,Y,M (i.e. standard chromosomes)
 
-chr1	67000041	67000051	ENST00000237247.10_1_cds_1_0_chr1_67000042_f	0	+
-chr1	67091529	67091593	ENST00000237247.10_1_cds_2_0_chr1_67091530_f	0	+
-chr1	67098752	67098777	ENST00000237247.10_1_cds_3_0_chr1_67098753_f	0	+
-chr1	67099762	67099846	ENST00000237247.10_1_cds_4_0_chr1_67099763_f	0	+
+chr1	66999065	66999090	ENST00000237247.10_1_exon_0_0_chr1_66999066_f	0	+
+chr1	66999928	67000051	ENST00000237247.10_1_exon_1_0_chr1_66999929_f	0	+
+chr1	67091529	67091593	ENST00000237247.10_1_exon_2_0_chr1_67091530_f	0	+
 [...]
 
 # gunzip -c gencode_gene_v27lift37.bed.gz | cut -f1 | uniq -c
-# it's unsorted, and in hg19 format
+# it's in hg19 format, contains non-standard chroms
 
-  51438 chr1  23135 chr10
-  42070 chr2  32178 chr11
-  32116 chr3  30986 chr12
-  22103 chr4   8690 chr13
-  23692 chr5  17633 chr14
-  26601 chr6  18953 chr15
-  25398 chr7  22870 chr16
-  17928 chr8  32300 chr17
-  21253 chr9   9248 chr18
-     13 chrM  31396 chr19
-  18896 chrX  12266 chr20
-   1748 chrY   5997 chr21
-              11473 chr22
 ```
 
 ### Convert from hg19 to Ensembl b37
@@ -228,6 +214,7 @@ chr1	67099762	67099846	ENST00000237247.10_1_cds_4_0_chr1_67099763_f	0	+
 gunzip -c gencode_gene_v27lift37.bed.gz | \
   sed -e 's/^chr//' | \
   sed -e 's/^M/MT/' | \
+  grep -v '_gl' | \
   sort -k1,1V -k2,2n | \
   gzip > gencode_gene_v27lift37_ensembl.bed.gz
 ```
@@ -244,20 +231,13 @@ bedtools intersect -wa -wb -a <sample>.per-base.bed.gz -b gencode_gene_v27lift37
 
 ```
 gunzip -c data/HCC2218/mosdepth/HCC2218_tumor.per-base_labeled.bed.gz | wc -l
-42,132,787 # per-base.bed.gz had 79,781,011 so makes sense
+49,536,854 # per-base.bed.gz had 79,781,011 so makes sense
 
 # Contents
 
-1	69090	69091	224	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
-1	69090	69091	224	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
-1	69091	69092	225	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
-1	69091	69092	225	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
-1	69092	69093	226	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
-1	69092	69093	226	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
-1	69093	69094	224	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
-1	69093	69094	224	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
-1	69094	69095	216	1	69090	70008	ENST00000335137.4_2_cds_0_0_chr1_69091_f	0	+
-1	69094	69095	216	1	69090	70008	ENST00000641515.1_1_cds_2_0_chr1_69091_f	0	+
+1	29494	29593	2	1	29553	30039	ENST00000473358.1_1_exon_0_0_chr1_29554_f	0	+
+1	29593	29594	1	1	29553	30039	ENST00000473358.1_1_exon_0_0_chr1_29554_f	0	+
+1	29594	29613	0	1	29553	30039	ENST00000473358.1_1_exon_0_0_chr1_29554_f	0	+
 [...]
 ```
 
