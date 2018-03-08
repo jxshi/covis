@@ -1,6 +1,3 @@
 HCC2218/
-gencode_gene_v27lift37.bed.gz
-gencode_gene_v27lift37_ensembl.bed.gz
-gencode.v27lift37.basic.annotation.gtf.gz
-gencode.v27lift37.metadata.HGNC.gz
-dd_class.csv
+ref/
+eyebioinf/
