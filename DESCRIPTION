@@ -1,0 +1,28 @@
+Package: covis
+Version: 0.0.0.1
+Title: Coverage Visualisation for Cancer Genes
+Description: Contains plotting functions for the visualisation of coverage depth
+  across panel of cancer genes.
+Authors@R: person("Peter", "Diakumis", email = "peterdiakumis@gmail.com", role = c("aut", "cre"))
+URL: https://github.com/umccr/covis
+BugReports: https://github.com/umccr/covis/issues
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+ByteCompile: true
+Depends:
+    R (>= 2.10)
+Imports: 
+    dplyr,
+    ggplot2,
+    glue,
+    readr,
+    tidyr,
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.0.1
+Suggests: 
+    covr,
+    knitr,
+    rmarkdown,
+    testthat,
+VignetteBuilder: knitr
