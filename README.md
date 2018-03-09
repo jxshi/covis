@@ -1,5 +1,5 @@
 
-# covis: Coverage Visualisation for Cancer Genes
+# covis: Coverage Visualisation for Cancer Gene Panels
 
 [![Travis build
 status](https://travis-ci.org/umccr/covis.svg?branch=master)](https://travis-ci.org/umccr/covis)
