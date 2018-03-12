@@ -1,0 +1,32 @@
+---
+title: "covis: Coverage Visualisation for Cancer Gene Panels"
+author: "Peter Diakumis"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Introduction
+------------
+`covis` is an R package containing plotting functions for the visualisation of
+coverage depth across cancer gene panels.
+
+Datasets
+--------
+The following datasets are required:
+
+1. BED file from [mosdepth](https://github.com/brentp/mosdepth) with per base
+   depth of coverage 
+2. BED file from UCSC containing exon/transcript coordinates
+3. Text file from GENCODE mapping transcript IDs to HGNC gene names
+4. GTF file from GENCODE containing details about gene transcripts
