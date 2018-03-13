@@ -1,0 +1,93 @@
+---
+title: "Working with Bioconductor Annotation Databases"
+author: "Peter Diakumis"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = FALSE, comment = NA)
+```
+
+```{r message=FALSE}
+library(dplyr)
+
+library(GenomicFeatures)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+
+library(DBI)
+library(RSQLite)
+```
+
+## Introduction
+Here I'm trying out different strategies for interrogating Bioconductor
+Annotation packages. THere are two main ways of doing so: 
+
+1. Indirectly GenomicFeatures functions
+2. Directly with database interrogation packages, such as:
+    * RSQlite
+    * dbplyr
+    * Organism.dplyr
+
+
+## GenomicFeatures
+
+### Select
+```{r}
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+seqlevels(txdb)[1:26]
+seqlevels(txdb) <- "chr15"
+
+# Find UCSC tx names that match gene IDs below
+keys <- c("100033416", "100033417", "100033420")
+columns(txdb)
+keytypes(txdb)
+select(txdb, keys = keys, columns = "TXNAME", keytype = "GENEID")
+select(txdb, keys = keys, columns = c("TXNAME", "TXSTRAND", "TXCHROM"), keytype = "GENEID")
+```
+
+### Ranges
+```{r}
+gr <- transcripts(txdb)
+gr
+ex <- exons(txdb)
+ex
+```
+
+### Grouping
+```{r eval=FALSE}
+# Not evaluating code
+grl1 <- transcriptsBy(txdb, by = "gene")
+grl1
+
+grl2 <- exonsBy(txdb, by = "tx")
+grl2
+tx_ids <- names(grl2)
+head(select(txdb, keys = tx_ids, columns = "TXNAME", keytype = "TXID"))
+```
+
+
+## RSQLite
+```{r}
+rm(list = ls())
+con <- dbConnect(SQLite(),
+                 system.file("extdata", "TxDb.Hsapiens.UCSC.hg19.knownGene.sqlite",
+                             package = "TxDb.Hsapiens.UCSC.hg19.knownGene"))
+dbListTables(con)
+# info
+dbGetQuery(con, 'SELECT * FROM metadata')
+
+# cds chrom/start/end
+dbGetQuery(con, 'SELECT * FROM cds') %>% glimpse()
+# chromosome name + length
+dbGetQuery(con, 'SELECT * FROM chrominfo') %>% head()
+# exon chrom/start/end
+dbGetQuery(con, 'SELECT * FROM exon') %>% glimpse()
+# gene_id, tx_id
+dbGetQuery(con, 'SELECT * FROM gene') %>% glimpse()
+# tx_name 'ucXXXX', chrom/start/end
+dbGetQuery(con, 'SELECT * FROM transcript') %>% glimpse()
+dbDisconnect(con)
+```
