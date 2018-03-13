@@ -13,12 +13,14 @@ knitr::opts_chunk$set(collapse = FALSE, comment = NA)
 
 ```{r message=FALSE}
 library(dplyr)
-
+library(dbplyr)
 library(GenomicFeatures)
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-
 library(DBI)
 library(RSQLite)
+# databases
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
+library(ensembldb)
 ```
 
 ## Introduction
@@ -29,7 +31,6 @@ Annotation packages. THere are two main ways of doing so:
 2. Directly with database interrogation packages, such as:
     * RSQlite
     * dbplyr
-    * Organism.dplyr
 
 
 ## GenomicFeatures
@@ -47,6 +48,7 @@ keytypes(txdb)
 select(txdb, keys = keys, columns = "TXNAME", keytype = "GENEID")
 select(txdb, keys = keys, columns = c("TXNAME", "TXSTRAND", "TXCHROM"), keytype = "GENEID")
 ```
+
 
 ### Ranges
 ```{r}
@@ -89,5 +91,18 @@ dbGetQuery(con, 'SELECT * FROM exon') %>% glimpse()
 dbGetQuery(con, 'SELECT * FROM gene') %>% glimpse()
 # tx_name 'ucXXXX', chrom/start/end
 dbGetQuery(con, 'SELECT * FROM transcript') %>% glimpse()
+dbDisconnect(con)
+```
+
+## dbplyr
+```{r}
+rm(list = ls())
+con <- dbConnect(SQLite(),
+                 system.file("extdata", "TxDb.Hsapiens.UCSC.hg19.knownGene.sqlite",
+                             package = "TxDb.Hsapiens.UCSC.hg19.knownGene"))
+dbListTables(con)
+tx <- tbl(con, "transcript")
+tx %>% 
+  head()
 dbDisconnect(con)
 ```

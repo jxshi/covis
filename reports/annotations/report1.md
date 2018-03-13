@@ -1,7 +1,7 @@
 ---
 title: "Working with Bioconductor Annotation Databases"
 author: "Peter Diakumis"
-date: "Tue 2018-Mar-14"
+date: "Tue 2018-Mar-13"
 output: 
   html_document: 
     keep_md: yes
@@ -15,19 +15,20 @@ output:
     * [Ranges](#ranges)
     * [Grouping](#grouping)
 * [RSQLite](#rsqlite)
+* [dbplyr](#dbplyr)
 
 <!-- vim-markdown-toc -->
 
-
-
 ```r
 library(dplyr)
-
+library(dbplyr)
 library(GenomicFeatures)
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-
 library(DBI)
 library(RSQLite)
+# databases
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
+library(ensembldb)
 ```
 
 ## Introduction
@@ -38,7 +39,6 @@ Annotation packages. THere are two main ways of doing so:
 2. Directly with database interrogation packages, such as:
     * RSQlite
     * dbplyr
-    * Organism.dplyr
 
 
 ## GenomicFeatures
@@ -116,6 +116,7 @@ select(txdb, keys = keys, columns = c("TXNAME", "TXSTRAND", "TXCHROM"), keytype 
 2 100033417 uc001yxo.3   chr15        +
 3 100033420 uc001yxr.3   chr15        +
 ```
+
 
 ### Ranges
 
@@ -318,6 +319,45 @@ $ tx_chrom  <chr> "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr...
 $ tx_strand <chr> "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+...
 $ tx_start  <int> 11874, 11874, 11874, 69091, 321084, 321146, 322037, ...
 $ tx_end    <int> 14409, 14409, 14409, 70008, 321115, 321207, 326938, ...
+```
+
+```r
+dbDisconnect(con)
+```
+
+## dbplyr
+
+```r
+rm(list = ls())
+con <- dbConnect(SQLite(),
+                 system.file("extdata", "TxDb.Hsapiens.UCSC.hg19.knownGene.sqlite",
+                             package = "TxDb.Hsapiens.UCSC.hg19.knownGene"))
+dbListTables(con)
+```
+
+```
+[1] "cds"        "chrominfo"  "exon"       "gene"       "metadata"  
+[6] "splicing"   "transcript"
+```
+
+```r
+tx <- tbl(con, "transcript")
+tx %>% 
+  head()
+```
+
+```
+# Source:   lazy query [?? x 7]
+# Database: sqlite 3.19.3
+#   [/Library/Frameworks/R.framework/Versions/3.4/Resources/library/TxDb.Hsapiens.UCSC.hg19.knownGene/extdata/TxDb.Hsapiens.UCSC.hg19.knownGene.sqlite]
+  `_tx_id` tx_name    tx_type tx_chrom tx_strand tx_start tx_end
+     <int> <chr>      <chr>   <chr>    <chr>        <int>  <int>
+1        1 uc001aaa.3 <NA>    chr1     +            11874  14409
+2        2 uc010nxq.1 <NA>    chr1     +            11874  14409
+3        3 uc010nxr.1 <NA>    chr1     +            11874  14409
+4        4 uc001aal.1 <NA>    chr1     +            69091  70008
+5        5 uc001aaq.2 <NA>    chr1     +           321084 321115
+6        6 uc001aar.2 <NA>    chr1     +           321146 321207
 ```
 
 ```r
