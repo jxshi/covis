@@ -105,3 +105,30 @@ tbl(db, "genes") %>% head() %>% as.data.frame()
 tbl(db, "ucsc") %>% head() %>% as.data.frame()
 dbDisconnect(db)
 ```
+
+EnsDb
+-----
+```{r}
+# This is for GRCh38
+db <- dbConnect(SQLite(), ensdb_fname)
+dbListTables(db) %>% dput()
+foo <- c("chromosome", "entrezgene", "exon", "gene", "metadata", "protein",
+         "protein_domain", "tx", "tx2exon", "uniprot")
+tbl(db, "metadata") %>% as.data.frame()
+# b38 chromosome lengths
+tbl(db, "chromosome") %>% head() %>% as.data.frame()
+# Ensembl 'ENSG000' + Entrez '123' Gene ID
+tbl(db, "entrezgene") %>% head() %>% as.data.frame()
+# Ensembl exon ID 'ENSE000', start, end
+tbl(db, "exon") %>% head() %>% as.data.frame()
+# Ensembl gene ID 'ENSG000', gene name/start/end, chromosome
+#-------- Important --------#
+# 63,970 rows
+tbl(db, "gene") %>% head() %>% as.data.frame()
+# Ensembl Tx/Gene IDs 'ENST000/ENSG000', start, end
+tbl(db, "tx") %>% head() %>% as.data.frame()
+# Ensembl tx/exon IDs
+tbl(db, "tx2exon") %>% head() %>% as.data.frame()
+dbDisconnect(db)
+```
+

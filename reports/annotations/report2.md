@@ -12,6 +12,7 @@ output:
 * [Introduction](#introduction)
 * [TxDb](#txdb)
 * [OrgDb](#orgdb)
+* [EnsDb](#ensdb)
 
 <!-- vim-markdown-toc -->
 
@@ -33,6 +34,11 @@ library(RSQLite)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(org.Hs.eg.db)
 library(EnsDb.Hsapiens.v86)
+```
+
+```
+## Warning in read.dcf(con): URL 'http://bioconductor.org/BiocInstaller.dcf':
+## status was 'Couldn't resolve host name'
 ```
 
 
@@ -623,3 +629,150 @@ tbl(db, "ucsc") %>% head() %>% as.data.frame()
 ```r
 dbDisconnect(db)
 ```
+
+EnsDb
+-----
+
+```r
+# This is for GRCh38
+db <- dbConnect(SQLite(), ensdb_fname)
+dbListTables(db) %>% dput()
+```
+
+```
+## c("chromosome", "entrezgene", "exon", "gene", "metadata", "protein", 
+## "protein_domain", "tx", "tx2exon", "uniprot")
+```
+
+```r
+foo <- c("chromosome", "entrezgene", "exon", "gene", "metadata", "protein",
+         "protein_domain", "tx", "tx2exon", "uniprot")
+tbl(db, "metadata") %>% as.data.frame()
+```
+
+```
+##                  name                               value
+## 1             Db type                               EnsDb
+## 2     Type of Gene ID                     Ensembl Gene ID
+## 3  Supporting package                           ensembldb
+## 4       Db created by ensembldb package from Bioconductor
+## 5      script_version                               0.3.0
+## 6       Creation time            Thu May 18 16:32:27 2017
+## 7     ensembl_version                                  86
+## 8        ensembl_host                           localhost
+## 9            Organism                        homo_sapiens
+## 10        taxonomy_id                                9606
+## 11       genome_build                              GRCh38
+## 12    DBSCHEMAVERSION                                 2.0
+```
+
+```r
+# b38 chromosome lengths
+tbl(db, "chromosome") %>% head() %>% as.data.frame()
+```
+
+```
+##   seq_name seq_length is_circular
+## 1        X  156040895           0
+## 2       20   64444167           0
+## 3        1  248956422           0
+## 4        6  170805979           0
+## 5        3  198295559           0
+## 6        7  159345973           0
+```
+
+```r
+# Ensembl 'ENSG000' + Entrez '123' Gene ID
+tbl(db, "entrezgene") %>% head() %>% as.data.frame()
+```
+
+```
+##           gene_id entrezid
+## 1 ENSG00000000003     7105
+## 2 ENSG00000000005    64102
+## 3 ENSG00000000419     8813
+## 4 ENSG00000000457    57147
+## 5 ENSG00000000460    55732
+## 6 ENSG00000000938     2268
+```
+
+```r
+# Ensembl exon ID 'ENSE000', start, end
+tbl(db, "exon") %>% head() %>% as.data.frame()
+```
+
+```
+##           exon_id exon_seq_start exon_seq_end
+## 1 ENSE00001855382      100636608    100636806
+## 2 ENSE00003662440      100635558    100635746
+## 3 ENSE00003654571      100635178    100635252
+## 4 ENSE00003658810      100633931    100634029
+## 5 ENSE00003554016      100633405    100633539
+## 6 ENSE00000401072      100632485    100632568
+```
+
+```r
+# Ensembl gene ID 'ENSG000', gene name/start/end, chromosome
+#-------- Important --------#
+# 63,970 rows
+tbl(db, "gene") %>% head() %>% as.data.frame()
+```
+
+```
+##           gene_id gene_name   gene_biotype gene_seq_start gene_seq_end seq_name seq_strand
+## 1 ENSG00000000003    TSPAN6 protein_coding      100627109    100639991        X         -1
+## 2 ENSG00000000005      TNMD protein_coding      100584802    100599885        X          1
+## 3 ENSG00000000419      DPM1 protein_coding       50934867     50958555       20         -1
+## 4 ENSG00000000457     SCYL3 protein_coding      169849631    169894267        1         -1
+## 5 ENSG00000000460  C1orf112 protein_coding      169662007    169854080        1          1
+## 6 ENSG00000000938       FGR protein_coding       27612064     27635277        1         -1
+##   seq_coord_system
+## 1       chromosome
+## 2       chromosome
+## 3       chromosome
+## 4       chromosome
+## 5       chromosome
+## 6       chromosome
+```
+
+```r
+# Ensembl Tx/Gene IDs 'ENST000/ENSG000', start, end
+tbl(db, "tx") %>% head() %>% as.data.frame()
+```
+
+```
+##             tx_id           tx_biotype tx_seq_start tx_seq_end tx_cds_seq_start tx_cds_seq_end
+## 1 ENST00000373020       protein_coding    100628670  100636806        100630798      100636694
+## 2 ENST00000496771 processed_transcript    100632541  100636689               NA             NA
+## 3 ENST00000494424 processed_transcript    100633442  100639991               NA             NA
+## 4 ENST00000612152       protein_coding    100627109  100637104        100630798      100635569
+## 5 ENST00000614008       protein_coding    100632063  100637104        100632063      100635569
+## 6 ENST00000373031       protein_coding    100584802  100599885        100585019      100599717
+##           gene_id
+## 1 ENSG00000000003
+## 2 ENSG00000000003
+## 3 ENSG00000000003
+## 4 ENSG00000000003
+## 5 ENSG00000000003
+## 6 ENSG00000000005
+```
+
+```r
+# Ensembl tx/exon IDs
+tbl(db, "tx2exon") %>% head() %>% as.data.frame()
+```
+
+```
+##             tx_id         exon_id exon_idx
+## 1 ENST00000373020 ENSE00001855382        1
+## 2 ENST00000373020 ENSE00003662440        2
+## 3 ENST00000373020 ENSE00003654571        3
+## 4 ENST00000373020 ENSE00003658810        4
+## 5 ENST00000373020 ENSE00003554016        5
+## 6 ENST00000373020 ENSE00000401072        6
+```
+
+```r
+dbDisconnect(db)
+```
+
