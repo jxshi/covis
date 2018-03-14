@@ -15,11 +15,15 @@ Here I'll look at the raw contents of a few Bioconductor Annotation packages:
 * `org.Hs.eg.db`
 * `EnsDb.Hsapiens.v86`
 
+The `Organism.dplyr` package provides a nice combination
+of the `org` and `TxDb` databases.
+
 ```{r load_pkgs, message=FALSE}
 library(dplyr)
 library(dbplyr)
 library(DBI)
 library(RSQLite)
+library(Organism.dplyr)
 # databases
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(org.Hs.eg.db)
@@ -43,7 +47,7 @@ TxDb
 ```{r}
 db <- dbConnect(SQLite(), txdb_fname)
 dbListTables(db)
-tbl(db, "metadata") %>% as.data.frame()
+tbl(db, "metadata") %>% collect()
 # tx name 'ucx.y', chrom/start/end
 tbl(db, "transcript") %>% glimpse()
 # exon chrom/start/end
@@ -53,7 +57,7 @@ tbl(db, "cds") %>% glimpse()
 # gene Entrez_ID '1234', tx_id
 tbl(db, "gene") %>% glimpse()
 # let's check out that first transcript
-tbl(db, "transcript") %>% dplyr::filter(`_tx_id` == 78830)
+tbl(db, "transcript") %>% dplyr::filter(`_tx_id` == 78830) %>% collect()
 dbDisconnect(db)
 ```
 
@@ -71,38 +75,36 @@ foo <- c("accessions", "alias", "chrlengths", "chromosome_locations",
          "ncbi2ensembl", "omim", "pfam", "prosite", "pubmed", "refseq", 
          "sqlite_stat1", "sqlite_stat4", "ucsc", "unigene", "uniprot")
 
-tbl(db, "metadata") %>% as.data.frame()
-tbl(db, "map_metadata") %>% as.data.frame()
-tbl(db, "map_counts") %>% as.data.frame()
-tbl(db, "sqlite_stat1") %>% as.data.frame()
+tbl(db, "metadata") %>% collect()
+tbl(db, "map_metadata") %>% collect()
+tbl(db, "map_counts") %>% collect()
+tbl(db, "sqlite_stat1") %>% collect()
 # EGID + genbank accession numbers
-tbl(db, "accessions") %>% head() %>% as.data.frame()
+tbl(db, "accessions") %>% collect()
 # EGID + gene alias
-tbl(db, "alias") %>% head() %>% as.data.frame()
+tbl(db, "alias") %>% collect()
 # b37 chr lengths
-tbl(db, "chrlengths") %>% head() %>% as.data.frame()
+tbl(db, "chrlengths") %>% collect()
 # EGID 1 is on chr 19, with location foo
-tbl(db, "chromosome_locations") %>% head() %>% as.data.frame()
+tbl(db, "chromosome_locations") %>% collect()
 # EGID 1 is on chr 19
-tbl(db, "chromosomes") %>% head() %>% as.data.frame()
+tbl(db, "chromosomes") %>% collect()
 # EGID cytogenetic location 
-tbl(db, "cytogenetic_locations") %>% head() %>% as.data.frame()
+tbl(db, "cytogenetic_locations") %>% collect()
 # Enzyme commission numbers
-tbl(db, "ec") %>% head() %>% as.data.frame()
+tbl(db, "ec") %>% collect()
 # Ensembl/NCBI Gene ID
-tbl(db, "ensembl") %>% head() %>% as.data.frame()
-tbl(db, "ensembl2ncbi") %>% head() %>% as.data.frame()
-tbl(db, "ncbi2ensembl") %>% head() %>% as.data.frame()
+tbl(db, "ensembl") %>% collect()
 # Ensembl Protein ID
-tbl(db, "ensembl_prot") %>% head() %>% as.data.frame()
+tbl(db, "ensembl_prot") %>% collect()
 # Ensembl Transcript ID
-tbl(db, "ensembl_trans") %>% head() %>% as.data.frame()
+tbl(db, "ensembl_trans") %>% collect()
 # Full gene name + symbol (60118)
-tbl(db, "gene_info") %>% head() %>% as.data.frame()
+tbl(db, "gene_info") %>% collect()
 # Gene ID connecting to above (60118)
-tbl(db, "genes") %>% head() %>% as.data.frame()
+tbl(db, "genes") %>% collect()
 # UCSC transcript IDs
-tbl(db, "ucsc") %>% head() %>% as.data.frame()
+tbl(db, "ucsc") %>% collect()
 dbDisconnect(db)
 ```
 
@@ -111,24 +113,65 @@ EnsDb
 ```{r}
 # This is for GRCh38
 db <- dbConnect(SQLite(), ensdb_fname)
-dbListTables(db) %>% dput()
+dbListTables(db)
 foo <- c("chromosome", "entrezgene", "exon", "gene", "metadata", "protein",
          "protein_domain", "tx", "tx2exon", "uniprot")
-tbl(db, "metadata") %>% as.data.frame()
+tbl(db, "metadata") %>% collect()
 # b38 chromosome lengths
-tbl(db, "chromosome") %>% head() %>% as.data.frame()
+tbl(db, "chromosome") %>% collect()
 # Ensembl 'ENSG000' + Entrez '123' Gene ID
-tbl(db, "entrezgene") %>% head() %>% as.data.frame()
+tbl(db, "entrezgene") %>% collect()
 # Ensembl exon ID 'ENSE000', start, end
-tbl(db, "exon") %>% head() %>% as.data.frame()
+tbl(db, "exon") %>% collect()
 # Ensembl gene ID 'ENSG000', gene name/start/end, chromosome
 #-------- Important --------#
 # 63,970 rows
-tbl(db, "gene") %>% head() %>% as.data.frame()
+tbl(db, "gene") %>% collect()
 # Ensembl Tx/Gene IDs 'ENST000/ENSG000', start, end
-tbl(db, "tx") %>% head() %>% as.data.frame()
+tbl(db, "tx") %>% collect()
 # Ensembl tx/exon IDs
-tbl(db, "tx2exon") %>% head() %>% as.data.frame()
+tbl(db, "tx2exon") %>% collect()
 dbDisconnect(db)
 ```
 
+Organism.dplyr
+--------------
+
+```{r}
+rm(list = ls())
+src <- src_organism("TxDb.Hsapiens.UCSC.hg19.knownGene")
+src_tbls(src)
+foo <- c("id_accession", "id_transcript", "id", "id_omim_pm", "id_protein", 
+         "id_go", "id_go_all", "ranges_gene", "ranges_tx", "ranges_exon", 
+         "ranges_cds")
+
+# entID, accNum
+tbl(src, "id_accession") %>% collect()
+# entID, unigene, ENST
+tbl(src, "id_transcript") %>% collect()
+# entID, ENSG, symbol, genename, alias
+tbl(src, "id") %>% collect()
+# entID, gene start/end/chrom
+tbl(src, "ranges_gene") %>% collect()
+# tx chrom, start, end, entID, UCSC name
+tbl(src, "ranges_tx") %>% collect()
+# exon chrom,start, end, entID, txID, exonID, exon rank
+tbl(src, "ranges_exon") %>% collect()
+
+# Gene symbol starting with SNORD
+tbl(src, "id") %>% 
+  dplyr::filter(symbol %like% "SNORD%") %>% 
+  dplyr::select(entrez:symbol) %>% 
+  dplyr::distinct() %>% 
+  dplyr::arrange(symbol) %>%
+  collect()
+
+# Transcript counts per gene symbol
+txcount <- inner_join(tbl(src, "id"), tbl(src, "ranges_tx")) %>%
+  dplyr::select(symbol, tx_id) %>% 
+  group_by(symbol) %>% 
+  summarise(count = n()) %>% 
+  arrange(count) %>%
+  collect()
+txcount
+```
