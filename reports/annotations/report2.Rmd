@@ -1,0 +1,107 @@
+---
+title: "Exploring Bioconductor Annotation Databases"
+author: "Peter Diakumis"
+date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+Introduction
+------------
+Here I'll look at the raw contents of a few Bioconductor Annotation packages:
+
+* `TxDb.Hsapiens.UCSC.hg19.knownGene`
+* `org.Hs.eg.db`
+* `EnsDb.Hsapiens.v86`
+
+```{r load_pkgs, message=FALSE}
+library(dplyr)
+library(dbplyr)
+library(DBI)
+library(RSQLite)
+# databases
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+library(org.Hs.eg.db)
+library(EnsDb.Hsapiens.v86)
+```
+
+```{r setup}
+options(width = 100)
+txdb_fname <- system.file("extdata", "TxDb.Hsapiens.UCSC.hg19.knownGene.sqlite",
+                          package = "TxDb.Hsapiens.UCSC.hg19.knownGene")
+orgdb_fname <- system.file("extdata", "org.Hs.eg.sqlite",
+                           package = "org.Hs.eg.db")
+ensdb_fname <- system.file("extdata", "EnsDb.Hsapiens.v86.sqlite",
+                           package = "EnsDb.Hsapiens.v86")
+```
+
+
+TxDb
+----
+
+```{r}
+db <- dbConnect(SQLite(), txdb_fname)
+dbListTables(db)
+tbl(db, "metadata") %>% as.data.frame()
+# tx name 'ucx.y', chrom/start/end
+tbl(db, "transcript") %>% glimpse()
+# exon chrom/start/end
+tbl(db, "exon") %>% glimpse()
+# cds chrom/start/end
+tbl(db, "cds") %>% glimpse()
+# gene Entrez_ID '1234', tx_id
+tbl(db, "gene") %>% glimpse()
+# let's check out that first transcript
+tbl(db, "transcript") %>% dplyr::filter(`_tx_id` == 78830)
+dbDisconnect(db)
+```
+
+OrgDb
+-----
+
+```{r}
+db <- dbConnect(SQLite(), orgdb_fname)
+dbListTables(db) # 36 tables -- ouch
+foo <- c("accessions", "alias", "chrlengths", "chromosome_locations", 
+         "chromosomes", "cytogenetic_locations", "ec", "ensembl", "ensembl2ncbi", 
+         "ensembl_prot", "ensembl_trans", "gene_info", "genes", "go", 
+         "go_all", "go_bp", "go_bp_all", "go_cc", "go_cc_all", "go_mf", 
+         "go_mf_all", "kegg", "map_counts", "map_metadata", "metadata", 
+         "ncbi2ensembl", "omim", "pfam", "prosite", "pubmed", "refseq", 
+         "sqlite_stat1", "sqlite_stat4", "ucsc", "unigene", "uniprot")
+
+tbl(db, "metadata") %>% as.data.frame()
+tbl(db, "map_metadata") %>% as.data.frame()
+tbl(db, "map_counts") %>% as.data.frame()
+tbl(db, "sqlite_stat1") %>% as.data.frame()
+# EGID + genbank accession numbers
+tbl(db, "accessions") %>% head() %>% as.data.frame()
+# EGID + gene alias
+tbl(db, "alias") %>% head() %>% as.data.frame()
+# b37 chr lengths
+tbl(db, "chrlengths") %>% head() %>% as.data.frame()
+# EGID 1 is on chr 19, with location foo
+tbl(db, "chromosome_locations") %>% head() %>% as.data.frame()
+# EGID 1 is on chr 19
+tbl(db, "chromosomes") %>% head() %>% as.data.frame()
+# EGID cytogenetic location 
+tbl(db, "cytogenetic_locations") %>% head() %>% as.data.frame()
+# Enzyme commission numbers
+tbl(db, "ec") %>% head() %>% as.data.frame()
+# Ensembl/NCBI Gene ID
+tbl(db, "ensembl") %>% head() %>% as.data.frame()
+tbl(db, "ensembl2ncbi") %>% head() %>% as.data.frame()
+tbl(db, "ncbi2ensembl") %>% head() %>% as.data.frame()
+# Ensembl Protein ID
+tbl(db, "ensembl_prot") %>% head() %>% as.data.frame()
+# Ensembl Transcript ID
+tbl(db, "ensembl_trans") %>% head() %>% as.data.frame()
+# Full gene name + symbol (60118)
+tbl(db, "gene_info") %>% head() %>% as.data.frame()
+# Gene ID connecting to above (60118)
+tbl(db, "genes") %>% head() %>% as.data.frame()
+# UCSC transcript IDs
+tbl(db, "ucsc") %>% head() %>% as.data.frame()
+dbDisconnect(db)
+```

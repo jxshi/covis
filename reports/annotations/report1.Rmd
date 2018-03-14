@@ -1,5 +1,5 @@
 ---
-title: "Working with Bioconductor Annotation Databases"
+title: "Intro to Working with Bioconductor Annotation Databases"
 author: "Peter Diakumis"
 date: "`r format(Sys.time(), '%a %Y-%b-%d')`"
 output: 
@@ -9,7 +9,18 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = FALSE, comment = NA)
+options(width = 100)
 ```
+
+
+## Introduction
+Here I'm trying out different strategies for interrogating Bioconductor
+Annotation packages. There are two main ways of doing so: 
+
+1. Indirectly with GenomicFeatures functions
+2. Directly with database interrogation packages, such as:
+    * RSQlite
+    * dbplyr
 
 ```{r message=FALSE}
 library(dplyr)
@@ -17,21 +28,8 @@ library(dbplyr)
 library(GenomicFeatures)
 library(DBI)
 library(RSQLite)
-# databases
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-library(org.Hs.eg.db)
-library(ensembldb)
 ```
-
-## Introduction
-Here I'm trying out different strategies for interrogating Bioconductor
-Annotation packages. THere are two main ways of doing so: 
-
-1. Indirectly GenomicFeatures functions
-2. Directly with database interrogation packages, such as:
-    * RSQlite
-    * dbplyr
-
 
 ## GenomicFeatures
 
@@ -59,8 +57,7 @@ ex
 ```
 
 ### Grouping
-```{r eval=FALSE}
-# Not evaluating code
+```{r}
 grl1 <- transcriptsBy(txdb, by = "gene")
 grl1
 
