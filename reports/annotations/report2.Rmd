@@ -49,13 +49,13 @@ db <- dbConnect(SQLite(), txdb_fname)
 dbListTables(db)
 tbl(db, "metadata") %>% collect()
 # tx name 'ucx.y', chrom/start/end
-tbl(db, "transcript") %>% glimpse()
+tbl(db, "transcript") %>% collect()
 # exon chrom/start/end
-tbl(db, "exon") %>% glimpse()
+tbl(db, "exon") %>% collect()
 # cds chrom/start/end
-tbl(db, "cds") %>% glimpse()
+tbl(db, "cds") %>% collect()
 # gene Entrez_ID '1234', tx_id
-tbl(db, "gene") %>% glimpse()
+tbl(db, "gene") %>% collect()
 # let's check out that first transcript
 tbl(db, "transcript") %>% dplyr::filter(`_tx_id` == 78830) %>% collect()
 dbDisconnect(db)

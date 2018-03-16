@@ -1,7 +1,7 @@
 ---
 title: "Exploring Bioconductor Annotation Databases"
 author: "Peter Diakumis"
-date: "Wed 2018-Mar-14"
+date: "Thu 2018-Mar-15"
 output: 
   html_document: 
     keep_md: yes
@@ -97,63 +97,90 @@ tbl(db, "metadata") %>% collect()
 
 ```r
 # tx name 'ucx.y', chrom/start/end
-tbl(db, "transcript") %>% glimpse()
+tbl(db, "transcript") %>% collect()
 ```
 
 ```
-## Observations: ??
-## Variables: 7
-## $ `_tx_id`  <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22...
-## $ tx_name   <chr> "uc001aaa.3", "uc010nxq.1", "uc010nxr.1", "uc001aal.1", "uc001aaq.2", "uc001a...
-## $ tx_type   <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
-## $ tx_chrom  <chr> "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1...
-## $ tx_strand <chr> "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+...
-## $ tx_start  <int> 11874, 11874, 11874, 69091, 321084, 321146, 322037, 323892, 324288, 327546, 3...
-## $ tx_end    <int> 14409, 14409, 14409, 70008, 321115, 321207, 326938, 328581, 325896, 328439, 3...
+## # A tibble: 82,960 x 7
+##    `_tx_id` tx_name    tx_type tx_chrom tx_strand tx_start tx_end
+##       <int> <chr>      <chr>   <chr>    <chr>        <int>  <int>
+##  1        1 uc001aaa.3 <NA>    chr1     +            11874  14409
+##  2        2 uc010nxq.1 <NA>    chr1     +            11874  14409
+##  3        3 uc010nxr.1 <NA>    chr1     +            11874  14409
+##  4        4 uc001aal.1 <NA>    chr1     +            69091  70008
+##  5        5 uc001aaq.2 <NA>    chr1     +           321084 321115
+##  6        6 uc001aar.2 <NA>    chr1     +           321146 321207
+##  7        7 uc009vjk.2 <NA>    chr1     +           322037 326938
+##  8        8 uc001aau.3 <NA>    chr1     +           323892 328581
+##  9        9 uc021oeh.1 <NA>    chr1     +           324288 325896
+## 10       10 uc021oei.1 <NA>    chr1     +           327546 328439
+## # ... with 82,950 more rows
 ```
 
 ```r
 # exon chrom/start/end
-tbl(db, "exon") %>% glimpse()
+tbl(db, "exon") %>% collect()
 ```
 
 ```
-## Observations: ??
-## Variables: 6
-## $ `_exon_id`  <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, ...
-## $ exon_name   <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,...
-## $ exon_chrom  <chr> "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "ch...
-## $ exon_strand <chr> "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", ...
-## $ exon_start  <int> 11874, 12595, 12613, 12646, 13221, 13403, 69091, 321084, 321146, 322037, 32...
-## $ exon_end    <int> 12227, 12721, 12721, 12697, 14409, 14409, 70008, 321115, 321207, 322228, 32...
+## # A tibble: 289,969 x 6
+##    `_exon_id` exon_name exon_chrom exon_strand exon_start exon_end
+##         <int> <chr>     <chr>      <chr>            <int>    <int>
+##  1          1 <NA>      chr1       +                11874    12227
+##  2          2 <NA>      chr1       +                12595    12721
+##  3          3 <NA>      chr1       +                12613    12721
+##  4          4 <NA>      chr1       +                12646    12697
+##  5          5 <NA>      chr1       +                13221    14409
+##  6          6 <NA>      chr1       +                13403    14409
+##  7          7 <NA>      chr1       +                69091    70008
+##  8          8 <NA>      chr1       +               321084   321115
+##  9          9 <NA>      chr1       +               321146   321207
+## 10         10 <NA>      chr1       +               322037   322228
+## # ... with 289,959 more rows
 ```
 
 ```r
 # cds chrom/start/end
-tbl(db, "cds") %>% glimpse()
+tbl(db, "cds") %>% collect()
 ```
 
 ```
-## Observations: ??
-## Variables: 6
-## $ `_cds_id`  <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2...
-## $ cds_name   <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
-## $ cds_chrom  <chr> "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr1", "chr...
-## $ cds_strand <chr> "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "+", "...
-## $ cds_start  <int> 12190, 12595, 13403, 69091, 324343, 324439, 324515, 324719, 325383, 327746, ...
-## $ cds_end    <int> 12227, 12721, 13639, 70008, 324345, 325605, 324686, 325124, 325605, 328213, ...
+## # A tibble: 237,533 x 6
+##    `_cds_id` cds_name cds_chrom cds_strand cds_start cds_end
+##        <int> <chr>    <chr>     <chr>          <int>   <int>
+##  1         1 <NA>     chr1      +              12190   12227
+##  2         2 <NA>     chr1      +              12595   12721
+##  3         3 <NA>     chr1      +              13403   13639
+##  4         4 <NA>     chr1      +              69091   70008
+##  5         5 <NA>     chr1      +             324343  324345
+##  6         6 <NA>     chr1      +             324439  325605
+##  7         7 <NA>     chr1      +             324515  324686
+##  8         8 <NA>     chr1      +             324719  325124
+##  9         9 <NA>     chr1      +             325383  325605
+## 10        10 <NA>     chr1      +             327746  328213
+## # ... with 237,523 more rows
 ```
 
 ```r
 # gene Entrez_ID '1234', tx_id
-tbl(db, "gene") %>% glimpse()
+tbl(db, "gene") %>% collect()
 ```
 
 ```
-## Observations: ??
-## Variables: 2
-## $ gene_id  <chr> "10772", "10772", "10772", "10772", "10772", "10772", "10772", "653545", "2294...
-## $ `_tx_id` <int> 78830, 78831, 78832, 78829, 78833, 78835, 78836, 82940, 82941, 82942, 82943, 8...
+## # A tibble: 73,432 x 2
+##    gene_id `_tx_id`
+##    <chr>      <int>
+##  1 10772      78830
+##  2 10772      78831
+##  3 10772      78832
+##  4 10772      78829
+##  5 10772      78833
+##  6 10772      78835
+##  7 10772      78836
+##  8 653545     82940
+##  9 22947      82941
+## 10 728410     82942
+## # ... with 73,422 more rows
 ```
 
 ```r
