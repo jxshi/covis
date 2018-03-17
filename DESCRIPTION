@@ -14,9 +14,12 @@ Depends:
     R (>= 2.10)
 Imports: 
     dplyr,
+    GenomicRanges,
     ggplot2,
     glue,
+    purrr,
     readr,
+    Rsamtools,
     tidyr,
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.0.1

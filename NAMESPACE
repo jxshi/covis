@@ -2,4 +2,5 @@
 
 export("%>%")
 export(hello)
+export(read_bed)
 importFrom(dplyr,"%>%")
