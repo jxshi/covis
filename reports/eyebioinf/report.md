@@ -1,7 +1,7 @@
 ---
 title: "Coverage Plotting"
 author: "Peter Diakumis"
-date: "Wed 2018-Mar-07"
+date: "Tue 2018-Jul-24"
 output: 
   html_document: 
     keep_md: yes
@@ -15,6 +15,7 @@ Here I'm playing with the example from the
 [eyebioinformatics blog](http://davemcg.github.io/post/let-s-plot-3-base-pair-resolution-ngs-exome-coverage-plots-part-1)
 
 ## Contents
+
 <!-- vim-markdown-toc GFM -->
 
 * [Read in data](#read-in-data)
@@ -37,7 +38,7 @@ Here I'm playing with the example from the
 
 ```r
 # 249,911 rows
-dd_class <- readr::read_csv("../../data/dd_class.csv", col_types = "cidciiciic")
+dd_class <- readr::read_csv("../../nogit/data/eyebioinf/dd_class.csv", col_types = "cidciiciic")
 glimpse(dd_class)
 ## Observations: 249,911
 ## Variables: 10
@@ -53,6 +54,7 @@ glimpse(dd_class)
 ## $ Name          <chr> "SNAI2", "SNAI2", "SNAI2", "SNAI2", "SNAI2", "SN...
 names(dd_class)[2] <- "Exon_Number" # get rid of space
 ```
+
 
 ## Bases per gene
 
@@ -118,7 +120,7 @@ dd_class %>%
 
 ```r
 dd_class %>% 
-  select(Name, Exon_Number) %>% 
+  select(Name, Exon_Number) %>%
   unique() %>%
   group_by(Name) %>% 
   summarise(Count = n()) %>% 
@@ -147,12 +149,14 @@ depth1 <- dd_class %>%
   filter(Name == "ABCA4") %>% 
   pull(Read_Depth)
 
-# Number of bases with depth of coverage > C in Gene A
+# Number of bases with depth of coverage > X in Gene A
 summary(depth1)
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##     8.0    83.0   110.0   120.5   151.0   288.0
 sum(depth1 > 5)
 ## [1] 6804
+sum(depth1 > 10)
+## [1] 6803
 sum(depth1 > 100)
 ## [1] 3937
 ```
@@ -194,10 +198,10 @@ dd_class %>%
 
 
 ```r
-# Sample X genes
+# Sample n genes
 genes <- sample(gene_count$Name, 6)
 dd_class %>% 
-  filter(Name %in% genes) %>% 
+  filter(Name %in% genes) %>%
   ggplot(aes(x = Read_Depth)) +
   geom_density(fill = "steelblue") +
   theme_minimal() +
@@ -235,9 +239,11 @@ plot_maker <- function(gene){
   n_exons <- dd_class %>%
     filter(Name == gene) %>%
     pull(Exon_Number) %>%
-    as.numeric() %>% max()
+    as.numeric() %>%
+    max()
   
-  dd_class %>% filter(Name == gene) %>%
+  dd_class %>%
+    filter(Name == gene) %>%
     mutate(Exon_Number = factor(Exon_Number, levels = 0:n_exons)) %>%  
     ggplot(aes(x = Start, y = Read_Depth)) + 
     geom_point(size = 0.1, colour = "steelblue") +
