@@ -54,7 +54,10 @@ zfgrep -f az300_tx.pattern gencode_genes_v27lift37_exons_coding_b37.bed.gz
 Datasets
 --------
 
-```{r}
+* There are 6 samples per batch: 100/80/60/40/20pc + blood for TruSeq,
+  TruSeq downsampled, and 10X EMA:
+
+```{r sample_nms}
 cov_fnames <- list.files("../../nogit/data/COLO829", full.names = TRUE) 
 aliases <- basename(cov_fnames) %>% 
   as_tibble() %>% 
@@ -76,7 +79,20 @@ tibble(aliases = aliases, fnames = basename(cov_fnames)) %>%
   arrange(aliases)
 ```
 
-```{r func_def}
+* A canonical transcript ID <---> az300 map has been prepared previously:
+
+```{r az_tx_read}
+az_tx <- readRDS("../../nogit/data/ref/az300_tx2gene.rds")
+```
+
+
+* Let's read all the coverage files into a single data frame. Below function
+  simply takes the transcript column from a coverage file, separates it into
+  the actual transcript ID and the exon number, uses the transcript ID to
+  get the gene name from the `az_tx` object, and selects all columns
+  of interest.
+
+```{r func_def1}
 read_cov <- function(fname, az_tx) {
   
   cov <- readr::read_tsv(fname, 
@@ -102,44 +118,61 @@ read_cov <- function(fname, az_tx) {
 }
 ```
 
-```{r read_files}
-az_tx <- readRDS("../../nogit/data/ref/az300_tx2gene.rds")
-cov1 <- read_cov(cov_fnames[1], az_tx) # EMA_100
-cov2 <- read_cov(cov_fnames[17], az_tx) # Truseq_100
-cov3 <- read_cov(cov_fnames[16], az_tx) # Truseq_down_100
+```{r read_cov_files, eval=FALSE}
+cov_all <- cov_fnames %>%
+  set_names(aliases) %>%
+  map_df(function(fn) {
+    read_cov(fn, az_tx)
+  }, .id = "sample")
+
+saveRDS(cov_all, "../../nogit/data/COLO829/cov_all.rds")
 ```
 
 
 ```{r glimpse_data}
+cov_all <- readRDS("../../nogit/data/COLO829/cov_all.rds")
+
 glimpse(az_tx) # 297 tx
-glimpse(cov1)
-glimpse(cov2)
-glimpse(cov3)
-cov_all <- dplyr::bind_rows(list(ema100 = cov1, tru100 = cov2, trudown100 = cov3), .id = "sample")
+glimpse(cov_all) # 6,257,481 rows
+```
+
+```{r aztx2gene_func}
+gene2tx <- function(gene, az_tx) {
+  tx <- az_tx %>% 
+    filter(gene_name == gene) %>% 
+    pull(transcript) %>% 
+    head(1) # CSNK2A1 has 2 tx IDs
+  
+  if (length(tx) == 0) stop(glue::glue("No transcript ID for {gene}"))
+  
+  tx
+}
+
+gene2tx("KRAS", az_tx)
+gene2tx("BRCA1", az_tx)
+gene2tx("FOO", az_tx)
 ```
 
 
-```{r plot_maker1}
+
+```{r plot_funcs}
 # set a custom color that will work even if a category is missing
-scale_colour_custom <- function(...) {
-  ggplot2:::manual_scale('colour', 
-                         values = setNames(c('darkred', 'steelblue'),
-                                           c('< 20 Reads','>= 20 Reads')), 
-                         ...)
-}
+# scale_colour_custom <- function(...) {
+#   ggplot2:::manual_scale('colour', 
+#                          values = setNames(c('darkred', 'steelblue'),
+#                                            c('< 20 Reads','>= 20 Reads')), 
+#                          ...)
+# }
+# 
 
 
-
-plot_prep <- function(transcript, cov) {
+plot_prep <- function(gene_name, cov) {
+  transcript <- gene2tx(gene_name, az_tx)
   num_of_exons <- cov %>%
     filter(tx == transcript) %>%
     pull(exon_number) %>%
     as.numeric() %>%
     max()
-  gene_name <- cov %>%
-    filter(tx == transcript) %>% 
-    pull(gene_name) %>% 
-    unique()
   # expand to create a row for each sequence and fill in previous values
   p <- cov %>%
     filter(tx == transcript) %>% 
@@ -155,35 +188,44 @@ plot_prep <- function(transcript, cov) {
   p
 }
 
-plot_prep("ENST00000256078.8", cov_all) %>%
-# plot_prep("ENST00000357654.7", cov_all) %>% 
-  ggplot(aes(x = start, xend = end, y = depth, yend = depth, colour = sample)) + 
-  geom_point(size = 0.1) + 
-  geom_line() +
-  theme_minimal() + 
-  # scale_colour_custom() +  # use my custom color set above for my three categories
-  scale_y_continuous(limits = c(0, NA)) +
-  theme(axis.text.x = element_blank(), 
-        axis.ticks.x = element_blank(), 
-        panel.grid.minor = element_blank(), 
-        panel.grid.major.x = element_blank()
-        # legend.position = 'none'
-        ) + 
-  facet_wrap(~exon_number, 
-             scales = 'free_x', 
-             nrow = 1, strip.position = 'bottom') +
-  # facet_grid(sample ~ exon_number, scales = 'free_x') +
-  ylab('Depth') + 
-  # xlab('BRCA1')
-  xlab('KRAS')
+plot_cov <- function(gene_name, cov) {
+  plot_prep(gene_name, cov) %>% 
+    ggplot(aes(x = start, xend = end, y = depth, yend = depth, colour = sample)) + 
+    geom_point(size = 0.1) + 
+    geom_line() +
+    theme_minimal() + 
+    # scale_colour_custom() +  # use my custom color set above for my three categories
+    scale_y_continuous(limits = c(0, NA)) +
+    theme(axis.text.x = element_blank(), 
+          axis.ticks.x = element_blank(), 
+          panel.grid.minor = element_blank(), 
+          panel.grid.major.x = element_blank()
+          # legend.position = 'none'
+    ) + 
+    facet_wrap(~exon_number, 
+               scales = 'free_x', 
+               nrow = 1, strip.position = 'bottom') +
+    # facet_grid(sample ~ exon_number, scales = 'free_x') +
+    ylab('Depth') + 
+    xlab(gene_name)
+}
 
 ```
 
-```{r plot_all2, fig.height=20, fig.width=18}
-plots <- purrr::map(az_tx$transcript[sample(nrow(az_tx), 5)], plot_maker)
-cowplot::plot_grid(plotlist = plots, ncol = 1)
+```{r eval=FALSE}
+genes <- c("KRAS", "BRCA1", "BRCA2", "TP53", "MAPK3", "CDK4", "CDK6", "TERT")
+lapply(genes, function(g) {
+  p <- plot_cov(g, cov_all)
+  ggsave(paste0("~/Desktop/tmp/covis/", g, "_exon_covplot_all-samples.png"), p, height = 15, width = 15)
+  })
 ```
 
-```{r plot_single, fig.height=7, fig.width=10}
-plot_maker("ENST00000256078.8") # KRAS
-plot_maker("ENST00000357654.7") # BRCA1
+```{r eval=FALSE}
+cov <- cov_all %>% 
+  filter(sample %in% c("EMA_100", "Truseq_100", "Truseq_Down_100"))
+lapply(genes, function(g) {
+  p <- plot_cov(g, cov)
+  ggsave(paste0("~/Desktop/tmp/covis/", g, "_exon_covplot.png"), p, height = 15, width = 15)
+  })
+```
+
